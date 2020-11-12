@@ -1,0 +1,73 @@
+@import 'helpers';
+
+html, body {
+	height: 100%;
+	width: 100%;
+	padding: 0;
+	margin: 0;
+	background: #FAFAFA;
+	font-family: 'Helvetica Neue', arial, sans-serif;
+	font-weight: 400;
+	color: #444;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+
+* {
+	box-sizing: border-box;
+}
+
+#app {
+	height: 100%;
+}
+
+
+.search-bar{
+	margin: auto;
+	width: 800px;
+	padding: 20px;
+
+	#search-input {
+		display: block;
+		margin: auto;
+		width: 70%;
+		padding: 10px;
+
+	}
+
+	.sayt{
+		width: 100%;
+		display: flex;
+		justify-content: space-between;
+		box-shadow: 1px 1px 4px #bdbdbd;
+
+		.suggested-terms{
+			flex-basis: 25%;
+			padding: 5px;
+			.nav-item{ 
+
+				h2 {
+					font-size: 14px;
+					font-weight: bold;
+					background-color: #e6e6e6;
+				}
+				div {
+					padding: 5px;
+					font-size: 12px;
+				}
+			}
+		}
+
+		.suggested-products{
+			flex-basis: 74%;
+
+			.product-card {
+				background-color: #dbdada;
+				margin: 4px;
+				height: 150px;
+				font-size: 14px;
+			}
+		}
+
+	}
+}
