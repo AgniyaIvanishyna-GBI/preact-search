@@ -2,32 +2,45 @@ import { Component, h } from 'preact';
 import queryString from 'query-string';
 import axios from 'axios';
 
-class Search extends Component{
+//move to some .env 
+const customerId = 'grocery';
+const collection = 'groceryProducts';
+const area = 'Staging';
 
+// const collection = 'wbPreFilter';
+// const area = 'Wbmason';
+// const customerId = 'presales';
+
+class Search extends Component{
     state = { 
         query: '',
         result: {}
     }
-
     
     getResults = async () => {
-        //move to env ? 
-        const collection = 'wbPreFilter';
-        const area = 'Wbmason';
-        const custumerId = 'presales';
-
         const { query } = this.state;
         
-        const saytTermsUrl = `https://${custumerId}.groupbycloud.com/api/v1/sayt/search?`;
-        let saytUrl = `${saytTermsUrl}&productItems=3&searchItems=4&navigationItems=5&matchPrefix=true&query=${query}`;
+        const saytTermsUrl = `https://${customerId}-cors.groupbycloud.com/api/v1/search?pretty`;
+        let saytUrl = `${saytTermsUrl}&searchItems=4&navigationItems=5&matchPrefix=true&query=${query}`;
         let args = {
-            "collection": collection,
-            "area": area,
+            collection, 
+            area,
+            fields: ["*", "id"],
+            pageSize: 3,
+            query: query,
+            sort: {field: "_relevance"}
         };
 
-        const res = await axios.get(saytUrl, { params: args });     
+        try{
+            const res = await axios.post(saytTermsUrl, args); 
 
-        this.setState({result: res.data.result});
+            this.setState({result: {
+                navigations: res.data.availableNavigation, 
+                products: res.data.records
+            }});
+        }catch(e){
+            console.log(e);
+        }
 
     }
 
@@ -38,28 +51,31 @@ class Search extends Component{
 
     renderNavigation = () => {
         const { result } = this.state;
-        const { navigations, searchTerms} = result;
+        const { navigations} = result;
+        // let saytHeadings = {
+        //     "visualVariant.nonvisualVariant.categoryname": "CATEGORY",
+        //     "visualVariant.nonvisualVariant.brandname": "BRAND"
+        // }
+
         let saytHeadings = {
-            "visualVariant.nonvisualVariant.categoryname": "CATEGORY",
-            "visualVariant.nonvisualVariant.brandname": "BRAND"
+            "gbi_categories.2": "AISLE",
+            "gbi_categories.3": "SHELF",
+            "brand": "BRAND"
         }
         return(
                 <div class="suggested-terms">
-                {
-                    searchTerms &&
-                    <div class="nav-item">
-                    { 
-                        searchTerms.map(item => <div>{item.value}</div>)
-                    }
-                    </div>
-                }
                 { navigations && 
                     navigations.map(item => {
                         return (
+                            saytHeadings[item.name] ? 
                             <div class="nav-item">
-                                <h2>{saytHeadings[item.name]}</h2>
-                                { item.values.map(value => <div>{value.replace('&amp;', '&')}</div>)}
-                            </div>
+                                <h2>{item.displayName}</h2>
+                                { item.refinements.map(elem => {
+                                    return( 
+                                        <div>{elem.value.replace('&amp;', '&')}</div>
+                                   )}
+                                )}
+                            </div> : null
                         )
                    }) 
                 }
@@ -67,18 +83,9 @@ class Search extends Component{
         )
     }
 
-    renderProduct = () => {
-
-    }
-
     renderResults = () => {
         const { result } = this.state;
-        const { navigations, products, searchTerms} = result;
-
-        let saytHeadings = {
-            "visualVariant.nonvisualVariant.categoryname": "CATEGORY",
-            "visualVariant.nonvisualVariant.brandname": "BRAND"
-        }
+        const { products} = result;
 
         return (
             result && Object.keys(result).length  ?  
