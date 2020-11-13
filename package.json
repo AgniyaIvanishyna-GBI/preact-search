@@ -98,7 +98,8 @@
     "promise-polyfill": "^7.0.1",
     "proptypes": "^1.0.0",
     "query-string": "^4.3.4",
-    "sirv-cli": "^0.4.2"
+    "sirv-cli": "^0.4.2",
+    "simple-jsonp-promise": "^1.1.0"
   },
   "main": "webpack.config.babel.js",
   "directories": {
