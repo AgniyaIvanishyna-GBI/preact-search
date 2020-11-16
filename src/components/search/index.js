@@ -1,29 +1,30 @@
 import { Component, h } from 'preact';
 import queryString from 'query-string';
 import axios from 'axios';
+import jsonp from 'simple-jsonp-promise';
 
-//move to some .env 
-const customerId = 'grocery';
-const collection = 'groceryProducts';
-const area = 'Staging';
+//move to some .env
+const customerId = 'presales';
+const collection = 'wbPreFilter';
+const area = 'Wbmason';
 
 // const collection = 'wbPreFilter';
 // const area = 'Wbmason';
 // const customerId = 'presales';
 
 class Search extends Component{
-    state = { 
+    state = {
         query: '',
         result: {}
     }
-    
+
     getResults = async () => {
         const { query } = this.state;
-        
-        const saytTermsUrl = `https://${customerId}-cors.groupbycloud.com/api/v1/search?pretty`;
-        let saytUrl = `${saytTermsUrl}&searchItems=4&navigationItems=5&matchPrefix=true&query=${query}`;
+
+        const saytProducts = `https://${customerId}-cors.groupbycloud.com/api/v1/search?pretty`;
+        const saytUrl = `https://${customerId}.groupbycloud.com/api/v1/sayt/search?collection=${collection}&area=${area}&productItems=3&searchItems=4&navigationItems=5&popularSearch=false&matchPrefix=false&query=${query}`;
         let args = {
-            collection, 
+            collection,
             area,
             fields: ["*", "id"],
             pageSize: 3,
@@ -32,11 +33,24 @@ class Search extends Component{
         };
 
         try{
-            const res = await axios.post(saytTermsUrl, args); 
-
+            const res = await axios.post(saytProducts, args);
+            let checkState = this.state;
+            console.log('state', checkState);
             this.setState({result: {
-                navigations: res.data.availableNavigation, 
-                products: res.data.records
+              navigations: checkState.result.navigations ? checkState.result.navigations : null,
+              products: res.data.records
+            }});
+        }catch(e){
+            console.log(e);
+        }
+
+        try{
+            const res2 = await jsonp(saytUrl);
+            let checkState = this.state;
+            console.log('state', checkState);
+            this.setState({result: {
+                navigations: res2.result,
+                products: checkState.result.products ? checkState.result.products : null
             }});
         }catch(e){
             console.log(e);
@@ -52,32 +66,36 @@ class Search extends Component{
     renderNavigation = () => {
         const { result } = this.state;
         const { navigations} = result;
-        // let saytHeadings = {
-        //     "visualVariant.nonvisualVariant.categoryname": "CATEGORY",
-        //     "visualVariant.nonvisualVariant.brandname": "BRAND"
-        // }
-
         let saytHeadings = {
-            "gbi_categories.2": "AISLE",
-            "gbi_categories.3": "SHELF",
-            "brand": "BRAND"
+            "visualVariant.nonvisualVariant.categoryname": "CATEGORY",
+            "visualVariant.nonvisualVariant.brandname": "BRAND"
         }
+
         return(
                 <div class="suggested-terms">
-                { navigations && 
-                    navigations.map(item => {
+                { navigations &&
+                    navigations.searchTerms.map(item => {
                         return (
-                            saytHeadings[item.name] ? 
                             <div class="nav-item">
-                                <h2>{item.displayName}</h2>
-                                { item.refinements.map(elem => {
-                                    return( 
-                                        <div>{elem.value.replace('&amp;', '&')}</div>
-                                   )}
-                                )}
-                            </div> : null
+                              {item.value}
+                            </div>
                         )
-                   }) 
+                   })
+                }
+                { navigations &&
+                    navigations.navigations.map(item => {
+                        return (
+                            saytHeadings[item.name] ?
+                              <div class="nav-item">
+                                  <h2>{saytHeadings[item.name]}</h2>
+                                  { item.values.map(elem => {
+                                      return(
+                                          <div>{elem}</div>
+                                     )}
+                                  )}
+                              </div> : null
+                        )
+                   })
                 }
             </div>
         )
@@ -88,21 +106,21 @@ class Search extends Component{
         const { products} = result;
 
         return (
-            result && Object.keys(result).length  ?  
+            result && Object.keys(result).length  ?
             <div class="sayt">
                     {this.renderNavigation()}
                     <div class="suggested-products">
                     {
-                        products && 
+                        products &&
                             products.map(item => {
-                                return ( 
+                                return (
                                     <div class="product-card">
                                         <div>{item.allMeta.title}</div>
                                     </div>
                                 )
                             })
                     }
-                    </div>             
+                    </div>
             </div> : null
         )
     }
