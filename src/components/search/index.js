@@ -10,20 +10,17 @@ const area = 'Wbmason';
 
 class Search extends Component{
     state = {
-        query: '',
         result: {}
     }
 
-    getResults = ({ isInput }) => {
+    getResults = ({ isInput, query }) => {
         if(isInput){
-            this.fetchNavigation();
+            this.fetchNavigation(query);
         }
-        
-        this.fetchProducts();
+        this.fetchProducts(query);
     }
 
-    fetchProducts = async() => {
-        const { query } = this.state;
+    fetchProducts = async(query) => {
         const saytProducts = `https://${customerId}-cors.groupbycloud.com/api/v1/search?pretty`;
         let args = {
             collection,
@@ -49,8 +46,7 @@ class Search extends Component{
 
     }
 
-    fetchNavigation = async() => {
-        const { query } = this.state;
+    fetchNavigation = async(query) => {
         const saytUrl = `https://${customerId}.groupbycloud.com/api/v1/sayt/search?collection=${collection}&area=${area}&productItems=3&searchItems=4&navigationItems=5&popularSearch=false&matchPrefix=false&query=${query}`;
         try{
             const res2 = await jsonp(saytUrl);
@@ -78,14 +74,14 @@ class Search extends Component{
                 window.location = '/search/?q=' + this.urlEncode(value) + '&sort=_relevance';
             }
         }else{
-            this.setState({query: value });
-            this.getResults({isInput: true});
+           // this.setState({query: value });
+            this.getResults({isInput: true, query: value});
         }
     }
 
     handleMouseoverNavigation = (e) =>{
-        this.setState({query: e.target.innerText});
-        this.getResults({isInput: false});
+       // this.setState({ query: e.target.innerText });
+        this.getResults({isInput: false, query: e.target.innerText});
     }
 
     createCard = (item) => {
@@ -168,9 +164,9 @@ class Search extends Component{
         const { result } = this.state;
         const { products} = result;
 
+        const isActive = result && Object.keys(result).length ? 'active' : '';
         return (
-            result && Object.keys(result).length  ?
-            <div class="sayt">
+            <div class={`sayt ${isActive}`}>
                     {this.renderNavigation()}
                     <div class="suggested-products list">
                     {
@@ -180,23 +176,23 @@ class Search extends Component{
                             })
                     }
                     </div>
-            </div> : null
+            </div> 
         )
     }
 
     render(){
         return (
-            <div class="search-bar">
-				<input
-					type="text"
-					class="search-input"
-					placeholder="Search W.B. Mason"
-                    onkeyup={this.handleInputChange}
-				/>
+            <Fragment>
+                <input
+                type="text"
+                class="search-input"
+                placeholder="Search W.B. Mason"
+                onkeyup={this.handleInputChange}
+                />
                 <img src="https://qljxctsr.media.zestyio.com/search-button.jpg"></img>
                 {this.renderResults()}
-            </div>
-        )
+            </Fragment>
+        )     
     }
 
 }
